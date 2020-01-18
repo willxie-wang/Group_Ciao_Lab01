@@ -1,11 +1,21 @@
 # Group_Ciao_Lab01
 library(tidyverse)
+library(ggplot2)
+
+mpg <- mpg
+
+p <- ggplot(data = mpg,
+            mapping = aes(x = displ, y = hwy )) +
+            geom_point(aes(color = manufacturer))+ 
+            theme(legend.position = "top")
+p
 
 bank <- read.csv("bank.csv")
 data <- bank
 
 housingvsjob <- data %>%
-  ggplot( aes( x = job, y = "balance", fill = "housing"))+
+  filter(loan == "yes") %>%
+  ggplot( aes( x = housing, y = balance, fill = job))+
   geom_bar( stat = "identity")
 housingvsjob
 
