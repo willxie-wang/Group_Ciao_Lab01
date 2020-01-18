@@ -6,3 +6,4 @@ p <- ggplot(data = mpg,
             mapping = aes(x = displ, y = hwy))
 p + geom_point()
 
+
