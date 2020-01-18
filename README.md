@@ -3,7 +3,11 @@ library(tidyverse)
 
 bank <- read.csv("bank.csv")
 data <- bank
-data
+
+housingvsjob <- data %>%
+  ggplot( aes( x = job, y = "balance", fill = "housing"))+
+  geom_bar( stat = "identity")
+housingvsjob
 
 goodtoloan <- data %>% 
   filter(job != "unemployed", housing == "yes") %>%
@@ -17,10 +21,5 @@ jobVisual <- goodtoloan %>%
 jobVisual
 
 
-#jobVisual <- goodtoloan %>% 
-#  filter( loan == "yes") %>%
-#  ggplot( aes(x = loan, y=balance, fill = job) ) + 
-#  geom_bar(stat="identity") 
-#jobVisual
 
 
