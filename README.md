@@ -17,6 +17,7 @@ p <- ggplot(data = mpg,
             mapping = aes(x = displ, y = hwy )) + geom_point(aes(color = class)) + theme(legend.position = "top")
 p
 
+### Exercise 2
 bank <- read.csv("bank.csv")
 
 MaritalVisual <- bank %>%
