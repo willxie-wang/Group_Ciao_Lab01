@@ -19,9 +19,8 @@ goodtoloan <- data %>%
 goodtoloan
 
 jobVisual <- goodtoloan %>% 
-  filter( loan == "yes") %>%
-  ggplot( aes(x = marital, y=balance, fill = job) ) + 
-  geom_bar(stat="identity") 
+  ggplot( aes(x = marital, fill = loan) ) + 
+  geom_bar( position ="fill"") 
 jobVisual
 
 housingvsjob <- data %>%
