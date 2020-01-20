@@ -1,13 +1,20 @@
-# Group_Ciao_Lab01
+### Group_Ciao_Lab01
 library(tidyverse)
 library(ggplot2)
 
+### Exercise 1a
 mpg <- mpg
+p1 <- ggplot(data = mpg,
+                  mapping = aes(x = displ, y = hwy ))+ geom_point()
+p1
 
+p2 <- ggplot(data = mpg,
+             mapping = aes(x = class, y = drv ))+ geom_point()
+p2
+
+### Exercise 1b
 p <- ggplot(data = mpg,
-            mapping = aes(x = displ, y = hwy )) +
-            geom_point(aes(color = manufacturer))+ 
-            theme(legend.position = "top")
+            mapping = aes(x = displ, y = hwy )) + geom_point(aes(color = class)) + theme(legend.position = "top")
 p
 
 bank <- read.csv("bank.csv")
