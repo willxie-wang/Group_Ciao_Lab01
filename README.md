@@ -11,23 +11,22 @@ p <- ggplot(data = mpg,
 p
 
 bank <- read.csv("bank.csv")
-data <- bank
 
-goodtoloan <- data %>% 
-  filter(job != "unemployed", housing == "yes") %>%
-  select(loan, job, marital, balance)
-goodtoloan
+MaritalVisual <- bank %>%
+  ggplot( aes(x = job, fill = loan))+
+  geom_bar(position = "fill")+
+  labs( title = "ratio of loans for different jobs", y = "ratio") +
+  coord_flip()
+MaritalVisual
 
-jobVisual <- goodtoloan %>% 
-  ggplot( aes(x = marital, fill = loan) ) + 
-  geom_bar( position ="fill"") 
-jobVisual
 
-housingvsjob <- data %>%
-  filter(loan == "yes") %>%
+housingvsjob <- bank %>%
   ggplot( aes( x = housing, y = balance, fill = job))+
-  geom_bar( stat = "identity")
+  geom_bar( stat = "identity") +
+  labs( title = "Housing vs Jobs")
 housingvsjob
+
+
 
 
 
