@@ -36,7 +36,7 @@ housingvsjob <- bank %>%
 housingvsjob
 
 
-### In Class Excercise
+# In Class Excercise 1/23
 
 bank <- read.table("https://msudataanalytics.github.io/SSC442/Labs/data/bank.csv",
                    header = TRUE,
