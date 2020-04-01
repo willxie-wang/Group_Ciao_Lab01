@@ -1,0 +1,204 @@
+---
+title: "lab 4"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+
+## Exercise 1 (first part)
+
+1. Execute the code above. Based on the results, rank the models from "most underfit" to "most overfit".
+
+```{r}
+# install.packages("kernlab")
+library(kernlab)
+data("spam")
+tibble::as.tibble(spam)
+
+is.factor(spam$type)
+levels(spam$type)
+
+set.seed(42)
+# spam_idx = sample(nrow(spam), round(nrow(spam) / 2))
+spam_idx = sample(nrow(spam), 1000)
+spam_trn = spam[spam_idx, ]
+spam_tst = spam[-spam_idx, ]
+
+fit_caps = glm(type ~ capitalTotal,
+               data = spam_trn, family = binomial)
+fit_selected = glm(type ~ edu + money + capitalTotal + charDollar,
+                   data = spam_trn, family = binomial)
+fit_additive = glm(type ~ .,
+                   data = spam_trn, family = binomial)
+fit_over = glm(type ~ capitalTotal * (.),
+               data = spam_trn, family = binomial, maxit = 50)
+
+# training misclassification rate
+mean(ifelse(predict(fit_caps) > 0, "spam", "nonspam") != spam_trn$type)
+mean(ifelse(predict(fit_selected) > 0, "spam", "nonspam") != spam_trn$type)
+mean(ifelse(predict(fit_additive) > 0, "spam", "nonspam") != spam_trn$type)
+mean(ifelse(predict(fit_over) > 0, "spam", "nonspam") != spam_trn$type)
+
+library(boot)
+set.seed(1)
+cv.glm(spam_trn, fit_caps, K = 5)$delta[1]
+cv.glm(spam_trn, fit_selected, K = 5)$delta[1]
+cv.glm(spam_trn, fit_additive, K = 5)$delta[1]
+cv.glm(spam_trn, fit_over, K = 5)$delta[1]
+```
+
+The models from "most underfit" to "most overfit" are: caps, selected, over, and additive models, based on their esimtate of prediction errors from high to low.
+
+2. Re-run the code above with 100 folds and a different seed. Does your conclusion change?
+
+```{r}
+set.seed(2)
+cv.glm(spam_trn, fit_caps, K = 100)$delta[1]
+cv.glm(spam_trn, fit_selected, K = 100)$delta[1]
+cv.glm(spam_trn, fit_additive, K = 100)$delta[1]
+cv.glm(spam_trn, fit_over, K = 100)$delta[1]
+```
+
+My conclusion does not change. With 100 folds and a different seed, the prediction errors are similar to what we found in part (1)
+
+3. Generate four confusion matrices for each of the four models fit in Part 1.
+
+```{r}
+make_conf_mat = function(predicted, actual) {
+  table(predicted = predicted, actual = actual)
+}
+cal_sen_spe = function(conf_mat, level) {
+  numer <- sum(conf_mat[level[1], level[1]])
+  denom <- sum(conf_mat[, level[1]])
+  sens <- ifelse(denom > 0, numer / denom, NA)
+  numer <- sum(conf_mat[level[2], level[2]])
+  denom <- sum(conf_mat[, level[2]])
+  spec <- ifelse(denom > 0, numer / denom, NA)
+  print(paste("Sensitivity:", round(sens, 4), ", Specificity", round(spec, 4)))
+}
+```
+
+Confusion matrix for caps model
+
+```{r}
+spam_tst_pred = ifelse(predict(fit_caps, spam_tst, type = "response") > 0.5,
+                       "spam",
+                       "nonspam")
+(conf_mat_50 = make_conf_mat(predicted = spam_tst_pred, actual = spam_tst$type))
+cal_sen_spe(conf_mat_50, c("spam", "nonspam"))
+```
+
+Confusion matrix for selected model
+
+```{r}
+spam_tst_pred = ifelse(predict(fit_selected, spam_tst, type = "response") > 0.5,
+                       "spam",
+                       "nonspam")
+(conf_mat_50 = make_conf_mat(predicted = spam_tst_pred, actual = spam_tst$type))
+cal_sen_spe(conf_mat_50, c("spam", "nonspam"))
+```
+
+Confusion matrix for additive model
+
+```{r}
+spam_tst_pred = ifelse(predict(fit_additive, spam_tst, type = "response") > 0.5,
+                       "spam",
+                       "nonspam")
+(conf_mat_50 = make_conf_mat(predicted = spam_tst_pred, actual = spam_tst$type))
+cal_sen_spe(conf_mat_50, c("spam", "nonspam"))
+```
+
+Confusion matrix for over model
+
+```{r}
+spam_tst_pred = ifelse(predict(fit_over, spam_tst, type = "response") > 0.5,
+                       "spam",
+                       "nonspam")
+(conf_mat_50 = make_conf_mat(predicted = spam_tst_pred, actual = spam_tst$type))
+cal_sen_spe(conf_mat_50, c("spam", "nonspam"))
+```
+
+4. Which is the best model? Write 2 paragraphs justifying your decision.
+
+The best model is the additive model.
+
+The additive model is the lowest estimate of predition error comparing to the other three models, therefore the predicted risk of being spam is the closest to the actual risk.
+
+The additive model also have the highest sum of sensitivity and specificity comparing to the other three models. Although the selected model has higher specificity comparing to the additive model and the over model has higher sensitivity comparing to the additive model, the additive performs best when we think of its ability of correctly classifing both spam and nonspam measured by the sum of sensitivity and specificity.
+
+Exercise 2
+
+1. Use the bank data and create a train / test split.
+
+```{r}
+bank <- read.csv("bank.csv")
+set.seed(42)
+# spam_idx = sample(nrow(spam), round(nrow(spam) / 2))
+bank_idx = sample(nrow(bank), floor(nrow(bank)*0.7))
+bank_trn = bank[bank_idx, ]
+bank_tst = bank[-bank_idx, ]
+```
+
+2. Run any logistic regression you like with 10-fold cross-validation in order to predict the yes/no variable (y).
+
+```{r}
+fit_additive = glm(y ~ .,
+                   data = bank_trn, family = binomial)
+cv.glm(bank_trn, fit_additive, K = 10)$delta[1]
+```
+
+3. Discuss the interpretation of the coefficients in your model.
+
+```{r}
+summary(fit_additive)
+```
+
+age has a positive coefficient, which means that older individuals are more likely to have y = yes.
+
+Using admin job as reference, blue-collar, entrepreneur, house maid, management, self-semployed services, technician, unemployed have negative coefficients, which means that people with these kind of jobs are less likely to have y = yes comparing to people who works as admin. 
+
+Using admin job as reference, retired, student, unknown have positive coefficients, which means that people with these kind of jobs are more likely to have y = yes comparing to people who works as admin. 
+
+Using divorced as reference, married and single have negative coefficients, which means that people with these kind of marital status are less likely to have y = yes comparing to people who are divorced
+
+Using primary education level as reference, secondary and tertiary have positive coefficients, which means that people with secondary or tertiary education are more likely to have y = yes 
+
+Using primary education level as reference, unknown education level has a negative coefficient, which means that people with unknown education are less likely to have y = yes 
+
+default = yes has a positive coefficient, which means that default = yes individuals are more likely to have y = yes comparing to default = no individuals.
+
+balance has a negative coefficient, which means that higher balance are less likely to have y = yes.
+
+housing = yes has a negative coefficient, which means that housing = yes individuals are less likely to have y = yes comparing to housing = no individuals.
+
+loan = yes has a negative coefficient, which means that loan = yes individuals are less likely to have y = yes comparing to loan = no individuals.
+
+contact = telephone/unknown have negative coefficients, which means that contact = telephone/unknown individuals are less likely to have y = yes comparing to contact = cellular individuals.
+
+day has a positive coefficient, which means that individuals with more days are more likely to have y = yes.
+
+Using month = apr as reference, aug., jan., jul., may, nov. have negative coefficients, which means that these months are less likely to have y = yes comparing to apr.
+
+Using month = apr as reference, dec., feb., jun., mar, oct., and sep. have positive coefficients, which means that these months are more likely to have y = yes comparing to apr.
+
+duration has a positive coefficient, which means that longer duration are more likely to have y = yes.
+
+campaign has a negative coefficient, which means that campaign are less likely to have y = yes.
+
+previous has a positive coefficient, which means that more previous are more likely to have y = yes.
+
+4. Create a confusion matrix of your preferred model, evaluated against your test data.
+
+```{r}
+bank_tst_pred = ifelse(predict(fit_additive, bank_tst, type = "response") > 0.5,
+                       "yes",
+                       "no")
+(conf_mat = make_conf_mat(predicted = bank_tst_pred, actual = bank_tst$y))
+cal_sen_spe(conf_mat, c("yes", "no"))
+```
+
+The model has a high specificity as 0.9793, but the sensitivity is low. If an individual has y = yes, there is only 27.2% probability that the model will predict correctly.
+
